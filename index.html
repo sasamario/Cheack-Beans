@@ -16,6 +16,41 @@
 <div>
     <div id="ocrResult"></div>
 </div>
+<script>
+    const recognize = function (evt) {
+        const files = evt.target.files;
+        if (files.length == 0) {
+            return;
+        }
 
+        Tesseract
+            .recognize(files[0], { lang: 'jpn', tessedit_pageseg_mode: "RAW_LINE" })
+            .progress(function (p) {
+                // 進歩状況の表示
+                let progressArea = document.getElementById("progress");
+                progressArea.innerText =  p.status + " " + Math.round(p.progress * 100);
+            })
+            .then(function (result) {
+                // 結果の表示
+                $replaceResult = highlight(result)
+                let ocrResult = document.getElementById("ocrResult");
+                ocrResult.innerHTML = $replaceResult;
+            });
+    }
+    const elm = document.getElementById('uploader');
+    elm.addEventListener('change', recognize);
+
+    function highlight(result) {
+        const ngWords = ['そらまめ', 'ひよこまめ', 'えだまめ', 'なっとう'];
+        let resultHtml = result.text.replace(new RegExp('会', 'g'), '金'); //「金」を「会」と誤認してしまうため置き換える
+
+        //NGワードにハイライト用のクラスをつける
+        for (let i = 0; i < ngWords.length; i++) {
+            resultHtml = resultHtml.replace(new RegExp(ngWords[i], "g"), '<span class="highlight">' + ngWords[i] + '</span>');
+        }
+
+        return resultHtml;
+    }
+</script>
 </body>
 </html>
